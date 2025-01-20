@@ -527,7 +527,7 @@
             const monthlyInterestRate = (interestRate / 12) / 100;
             const maxEligibleAmount = (annualIncome / 12) * (debtIncomeRatio / 100);
             const maxEligibleEMI = (annualIncome / 12) * (debtIncomeRatio / 100);
-            $('#monthlyEligiblelabel').text('₹' + formatIndianCurrency(monthlyIncome));
+            $('#monthlyEligiblelabel').text('₹' + formatIndianCurrency(Math.round(monthlyIncome)));
             $('#monthlyEligibleInterestlabel').text(interestRate + '%');
             $('#loanEligiblelabel').text('₹' + formatIndianCurrency(Math.round(pv(monthlyInterestRate, tenureMonths, -desiredEMI))));
             $('#maxEligiblelabel').text('₹' + formatIndianCurrency(Math.round(maxEligibleEMI)));
