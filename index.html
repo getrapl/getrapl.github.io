@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5" />
+    <title>Auto Loan Calculator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+        body {
+            background-color: #FFF;
+        }
+
+        .header {
+            background-color: #66a6ff;
+            color: #fff;
+            height: 200px;
+            position: relative;
+            width: 100%;
+        }
+
+        .form-label {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .form-input-label {
+            font-size: 14px;
+            font-weight: 800;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 95%;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            outline: none;
+            position: relative;
+            left: 4px
+        }
+
+        input[type="range"]::-webkit-slider-runnable-track {
+            background: linear-gradient(to right, #0751c0 0%, #0751c0 var(--progress), #e0e0e0 var(--progress), #e0e0e0 100%);
+            height: 6px;
+        }
+
+        input[type="range"]::-moz-range-track {
+            background: linear-gradient(to right, #0751c0 0%, #0751c0 var(--progress), #e0e0e0 var(--progress), #e0e0e0 100%);
+            height: 6px;
+        }
+
+        input[type="range"]::-ms-track {
+            background: transparent;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #0751c0;
+            border-radius: 50%;
+            cursor: pointer;
+            position: relative;
+            top: -5px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: #0751c0;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-ms-thumb {
+            width: 16px;
+            height: 16px;
+            background: #0751c0;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        input:focus {
+            outline: none !important;
+            box-shadow: none !important;
+            border-color: #e0e0e0 !important;
+        }
+
+        select:focus {
+            outline: none !important;
+            box-shadow: none !important;
+            border-color: #e0e0e0 !important;
+        }
+
+
+        .form-box {
+            position: relative;
+            top: -150px;
+        }
+
+        .more-input {
+            background-color: #f8f9fa;
+        }
+
+        .loan-calculator-page {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            border: 10px solid #ffffff;
+            box-shadow: 0 4px 8.8px #00000026;
+        }
+
+        .btn-primary {
+            background-color: #0751c0;
+            height: 50px;
+            text-transform: uppercase;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        #results {
+            display: none;
+        }
+
+        #eligibiltyCard {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            display: none;
+        }
+
+        .eligibilty-value {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .eligibilty-highlight {
+            background: #4CAF50;
+            border-radius: 8px;
+        }
+
+        td {
+            font-size: 14px;
+            color: #000;
+            font-weight: 600;
+        }
+
+        .bg-fixed {
+            background: #EDE4E4 !important;
+        }
+
+        .bg-variable {
+            background: #EEEFFE !important;
+        }
+
+        .bg-highlights {
+            background: #C8CDFF !important;
+        }
+
+        .bg-emi {
+            background: #DCEDC8 !important;
+            font-weight: 800;
+        }
+
+        .row-highlights {
+            font-weight: 800;
+            font-size: 14px;
+        }
+
+        .modal-dialog {
+            max-width: 85% !important;
+        }
+
+        .close {
+            font-size: 30px;
+            background: #fff;
+            border: none;
+        }
+
+        .btn-outline-secondary.active {
+            background-color: #667eea;
+        }
+
+        .btn-outline-secondary:hover {
+            background-color: #667eea !important;
+            border-color: #667eea !important;
+        }
+
+        #emi-result-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+
+        }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <div class="header"></div>
+    <div class="container-md form-box">
+        <div class="loan-calculator-page">
+            <form id="loanForm">
+                <div class="row mb-3 p-4">
+                    <h4 class="text-center p-2 mb-2">Auto Loan Calculator</h4>
+                    <div class="row col-md-10 offset-md-1 more-input p-md-4">
+                        <div class="col-md-6 p-md-4">
+                            <div class="row col-md-12 mb-4">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <label for="annualIncome" class="form-label">Annual Income</label>
+                                    <label class="form-input-label" id="annualIncomeLabel">10</label>
+                                    <input type="text" class="form-control mt-2 d-none" id="annualIncome"
+                                        placeholder="Enter annual income" required oninput="formatNumber(this)"
+                                        onclick="this.select()" />
+                                </div>
+                                <input type="range" class="mx-2 p-0" id="annualIncomeRange" min="300000" max="10000000"
+                                    step="1000" oninput="updateAnnualIncome(this)" />
+                            </div>
+                            <div class="row col-md-12 mb-4">
+                                <div class="col-md-4">
+                                    <label for="tenureYears" class="form-label">Tenure</label>
+                                    <select class="form-select" id="tenureYears">
+                                        <option value="2">2 yrs</option>
+                                        <option value="3">3 yrs</option>
+                                        <option value="4">4 yrs</option>
+                                        <option value="5">5 yrs</option>
+                                        <option value="6">6 yrs</option>
+                                        <option value="7">7 yrs</option>
+                                        <option value="8">8 yrs</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-8">
+                                    <label for="desiredEMI" class="form-label">Desired EMI</label>
+                                    <input type="text" class="form-control" id="desiredEMI"
+                                        placeholder="Enter desired EMI" oninput="formatNumber(this)"
+                                        onclick="this.select()" />
+                                </div>
+                            </div>
+                            <div class="row col-md-12 mb-4">
+                                <div class="col-md-4">
+                                    <label for="debtIncomeRatio" class="form-label">Debt-Income Ratio</label>
+                                    <select class="form-select" id="debtIncomeRatio">
+                                        <option value="20">20%</option>
+                                        <option value="25">25%</option>
+                                        <option value="30">30%</option>
+                                        <option value="35">35%</option>
+                                        <option value="40">40%</option>
+                                        <option value="45">45%</option>
+                                        <option value="50">50%</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-8">
+                                    <label for="lumpsumAmount" class="form-label">Lumpsum Amount</label>
+                                    <input type="text" class="form-control" id="lumpsumAmount" min="20000" max="500000"
+                                        placeholder="Enter lumpsum amount" oninput="formatNumber(this)"
+                                        onclick="this.select()" />
+                                </div>
+                            </div>
+                            <div class="row col-md-12 mb-4">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <label for="loanAmount" class="form-label">Loan Amount</label>
+                                    <label class="form-input-label" id="loanAmountLabel">10</label>
+                                    <input type="text" class="form-control mt-2 d-none" id="loanAmount"
+                                        placeholder="Enter loan amount" required oninput="formatNumber(this)"
+                                        onclick="this.select()" />
+                                </div>
+                                <input type="range" class="mx-2 p-0" id="loanAmountRange" min="300000" max="10000000"
+                                    step="100000" oninput="updateLoanAmount(this)" />
+                            </div>
+                        </div>
+                        <div class="col-md-6 p-md-4">
+                            <div class="row mb-3">
+                                <div class="row col-md-12 mb-4">
+                                    <div class="col-md-4">
+                                        <label for="isSalaried" class="form-label">Salaried</label>
+                                        <select class="form-select" id="isSalaried">
+                                            <option value="yes">Yes</option>
+                                            <option value="no">No</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-8">
+                                        <label for="cibilScore" class="form-label">CIBIL Score</label>
+                                        <input type="number" class="form-control" id="cibilScore" min="300" max="900"
+                                            placeholder="Enter CIBIL score" required />
+                                    </div>
+                                </div>
+                                <div class="row col-md-12 mb-4">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <label for="interest" class="form-label">Interest</label>
+                                        <label class="form-input-label" id="interestLabel">9%</label>
+                                        <input type="text" class="form-control mt-2 d-none" id="interest"
+                                            placeholder="Enter loan amount" required oninput="formatNumber(this)"
+                                            onclick="this.select()" />
+                                    </div>
+                                    <input type="range" class="mx-2 p-0" id="interestRange" min="8" max="16" step=".1"
+                                        oninput="updateInterest(this)" />
+                                </div>
+                                <div class="row col-md-4 mb-4">
+                                    <div class="row col-md-12">
+                                    </div>
+                                    <label for="stepUpDown" class="form-label">Step Up / Down</label>
+                                    <select class="form-select ms-2" id="stepUpDown">
+                                        <option value="5">5%</option>
+                                        <option value="10">10%</option>
+                                        <option value="15">15%</option>
+                                        <option value="20">20%</option>
+                                    </select>
+                                </div>
+                                <button type="button" class="btn btn-primary w-100" onclick="calculateLoan()">
+                                    Calculate
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </form>
+            <div id="results" class="mt-4">
+                <h4>Eligibility</h2>
+                    <div class="mt-3">
+                        <div id="eligibiltyCard">
+                            <div class="row m-4 p-4">
+                                <div class="col-sm-6 col-md-3 text-center">
+                                    <h6>Monthly Income (₹)
+                                    </h6>
+                                    <label class="eligibilty-value mt-1 p-1"
+                                        id="monthlyEligiblelabel">₹1,000,100</label>
+                                </div>
+                                <div class="col-sm-6 col-md-3 text-center">
+                                    <h6>Interest rate (%)</h6>
+                                    <label class="eligibilty-value mt-1 p-1"
+                                        id="monthlyEligibleInterestlabel">14.5%</label>
+                                </div>
+                                <div class="col-sm-6 col-md-3 text-center">
+                                    <h6>Max Eligible Loan Amount (₹)</h6>
+                                    <label class="eligibilty-value mt-1 p-1 eligibilty-highlight"
+                                        id="loanEligiblelabel">₹215,000</label>
+                                </div>
+                                <div class="col-sm-6 col-md-3 text-center">
+                                    <h6>Max Eligible EMI (₹)</h6>
+                                    <label class="eligibilty-value mt-1 p-1 eligibilty-highlight"
+                                        id="maxEligiblelabel">₹15,000</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table id="loanTable" class="table table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="text-center" rowspan="2"></th>
+                                        <!-- <th class="text-center bg-fixed" colspan="3">Fixed EMI</th>
+                                    <th class="text-center bg-variable" colspan="4">Variable EMI</th> -->
+                                    </tr>
+                                    <tr id="loanTypeTableHeader">
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <button type="button" class="btn btn-link text-uppercase" data-toggle="modal"
+                                data-target="#exampleModalLong" onclick="showMonthlyEMI()">
+                                view monthly EMI
+                            </button>
+                        </div>
+                    </div>
+            </div>
+        </div>
+        <div class="modal fade" id="exampleModalLong" tabindex="-1" role="dialog"
+            aria-labelledby="exampleModalLongTitle" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLongTitle">Monthly EMI</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                            onclick="closeMonthlyEMI()">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-4" id="allEligibleLoanType"></div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div id="emi-result-card">
+                                </div>
+                            </div>
+                        </div>
+                        <table id="EMITable" class="table table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="text-center bg-dark-subtle">Month</th>
+                                    <th class="text-center bg-dark-subtle">Opening Balance</th>
+                                    <th class="text-center bg-dark-subtle">Interest for the Month</th>
+                                    <th class="text-center bg-dark-subtle">Principal Payment</th>
+                                    <th class="text-center bg-dark-subtle">EMI</th>
+                                    <th class="text-center bg-dark-subtle">Closing Balance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            setDefaultSet();
+        });
+        const LoanTypeEnum = new Map([
+            ["VANILLA", "Vanilla"],
+            ["EIGHT_YEAR_FUNDING", "8 Year Funding"],
+            ["BALLON", "Balloon"],
+            ["STEP_UP", "Step Up"],
+            ["STEP_UP_BALLON", "Step Up & Balloon"],
+            ["STEP_DOWN", "Step Down"],
+            ["BULLET", "Bullet"],
+        ]);
+        var fixedLoanTypeArr = ['VANILLA', 'EIGHT_YEAR_FUNDING', 'BALLON'];
+        var lastmonthhighlightsArr = ['Last month settlement', 'Interest on Lumpsum', 'Total last month payment'];
+        var highlightsAmountArr = ['Actual EMI', 'Duration in months', 'Interest'];
+        var defaultSet = {
+            annualIncome: 1000000,
+            isSalaried: 'yes',
+            cibilScore: 750,
+            loanAmount: 600000,
+            interest: 10,
+            tenureYears: 5,
+            desiredEMI: 26667,
+            debtIncomeRatio: 40,
+            lumpsumAmount: 50000,
+            eightYearFunding: 96,
+            stepUpDown: 10,
+            stepUpDownPeriod: 12
+        };
+        var eligibleloanTypeArr = [];
+        var loansDataSet = [];
+
+        function setDefaultSet() {
+            $('#annualIncome').val(defaultSet.annualIncome);
+            $('#annualIncomeRange').val(defaultSet.annualIncome);
+            const annualIncomeRangeInput = $('#annualIncomeRange');
+            updateRangeFill(annualIncomeRangeInput[0]);
+            $('#annualIncomeLabel').text('₹' + formatIndianCurrency(defaultSet.annualIncome));
+            $('#isSalaried').val(defaultSet.isSalaried);
+            $('#cibilScore').val(defaultSet.cibilScore);
+            $('#tenureYears').val(defaultSet.tenureYears);
+            $('#desiredEMI').val(defaultSet.desiredEMI);
+            $('#lumpsumAmount').val(defaultSet.lumpsumAmount);
+            $('#interest').val(defaultSet.interest);
+            $('#interestRange').val(defaultSet.interest);
+            const interestRangeInput = $('#interestRange');
+            updateRangeFill(interestRangeInput[0]);
+            $('#interestLabel').text(defaultSet.interest + '%');
+            $('#debtIncomeRatio').val(defaultSet.debtIncomeRatio);
+            $('#loanAmount').val(defaultSet.loanAmount);
+            $('#loanAmountRange').val(defaultSet.loanAmount);
+            const loanAmountRangeInput = $('#loanAmountRange');
+            updateRangeFill(loanAmountRangeInput[0]);
+            $('#loanAmountLabel').text('₹' + formatIndianCurrency(defaultSet.loanAmount));
+            $('#stepUpDown').val(defaultSet.stepUpDown)
+        }
+
+        function updateRangeFill(range) {
+            const min = range.min;
+            const max = range.max;
+            const value = range.value;
+            const percent = ((value - min) / (max - min)) * 100;
+            range.style.setProperty('--progress', percent + '%');
+        }
+
+        function updateAnnualIncome(slider) {
+            updateRangeFill(slider);
+            $("#annualIncome").val(slider.value)
+            $('#annualIncomeLabel').text('₹' + formatIndianCurrency(slider.value))
+        }
+
+        function updateInterest(slider) {
+            updateRangeFill(slider);
+            $("#interest").val(slider.value);
+            $('#interestLabel').text(slider.value + '%')
+        }
+
+        function updateLoanAmount(slider) {
+            updateRangeFill(slider);
+            $("#loanAmount").val(formatIndianCurrency(slider.value))
+            $('#loanAmountLabel').text('₹' + formatIndianCurrency(slider.value))
+        }
+
+        function formatIndianCurrency(value) {
+            const number = parseInt(value.toString().replace(/,/g, "")) || 0;
+            return number.toLocaleString("en-IN");
+        }
+
+        function formatNumber(input) {
+            // input.value = formatIndianCurrency(input.value);
+            return input.value;
+        }
+
+        function updateStepUp(value) {
+            document.getElementById("stepUp").value = value;
+        }
+
+        function calculateLoan() {
+            eligibleloanTypeArr = [];
+            const annualIncome = $("#annualIncome").val();
+            const interestRate = parseInt($("#interest").val(), 10);
+            const debtIncomeRatio = $("#debtIncomeRatio").val();
+            const tenureMonths = parseInt($("#tenureYears").val(), 10) * 12;
+            const desiredEMI = parseInt($("#desiredEMI").val(), 10);
+            const cibilScore = parseInt($("#cibilScore").val(), 10);
+            const loanAmount = parseInt($('#loanAmount').val(), 10);
+            const lumpsumAmount = parseInt($('#lumpsumAmount').val(), 10);
+            const stepUpDown = parseInt($("#stepUpDown").val(), 10);
+            const monthlyIncome = annualIncome / 12;
+            const monthlyInterestRate = (interestRate / 12) / 100;
+            const maxEligibleAmount = (annualIncome / 12) * (debtIncomeRatio / 100);
+            const maxEligibleEMI = (annualIncome / 12) * (debtIncomeRatio / 100);
+            $('#monthlyEligiblelabel').text('₹' + formatIndianCurrency(monthlyIncome));
+            $('#monthlyEligibleInterestlabel').text(interestRate + '%');
+            $('#loanEligiblelabel').text('₹' + formatIndianCurrency(Math.round(pv(monthlyInterestRate, tenureMonths, -desiredEMI))));
+            $('#maxEligiblelabel').text('₹' + formatIndianCurrency(Math.round(maxEligibleEMI)));
+            $('#eligibiltyCard').show();
+            if (cibilScore >= 700) {
+                eligibleloanTypeArr.push("VANILLA", "EIGHT_YEAR_FUNDING")
+            }
+            if (cibilScore >= 715) {
+                eligibleloanTypeArr.push("BALLON")
+            }
+            if (cibilScore >= 725) {
+                eligibleloanTypeArr.push('STEP_UP', 'STEP_UP_BALLON', 'STEP_DOWN', 'BULLET')
+            }
+            const loanData = [];
+            $("#loanTypeTableHeader").empty();
+
+            eligibleloanTypeArr.forEach(loanType => {
+                var $th = $("<th>").addClass("text-center")
+                $("<th>").addClass("text-center")
+                if (fixedLoanTypeArr.includes(loanType)) {
+                    $th.addClass("bg-fixed");
+                } else {
+                    $th.addClass("bg-variable");
+                }
+                $th.text(LoanTypeEnum.get(loanType));
+                $("#loanTypeTableHeader").append($th);
+            });
+            const maxEligibleAmountObj = { "property": "Max eligible amount" };
+            const approvedAmountObj = { "property": "Approved amount" };
+            const actualEMIObj = { "property": "Actual EMI" };
+            const lastMonthSettlementObj = { "property": "Last month settlement" };
+            const interestOnLumpsumObj = { "property": "Interest on Lumpsum" };
+            const totalLastMonthPaymentObj = { "property": "Total last month payment" };
+            const durationInMonthsObj = { "property": "Duration in months" };
+            const totalPaymentObj = { "property": "Total Payment" };
+            const principalObj = { "property": "Principal" };
+            const interestObj = { "property": "Interest" };
+            eligibleloanTypeArr.forEach(type => {
+                var loanResultObj = calculateMonthlyEMI(type);
+                loansDataSet.push({
+                    loantype: type,
+                    result: loanResultObj.result,
+                    emiValues: loanResultObj.emiSet
+                });
+                maxEligibleAmountObj[type] = '₹' + formatIndianCurrency(Math.round((loanResultObj.result['max_eligible_amount'])));
+                approvedAmountObj[type] = '₹' + formatIndianCurrency(Math.round(loanResultObj.result['approved_amount']));
+                actualEMIObj[type] = loanResultObj.result['actual_EMI'] !== 0 ? '₹' + formatIndianCurrency(loanResultObj.result['actual_EMI']) : '-';
+                lastMonthSettlementObj[type] = loanResultObj.result['last_month_settlement'] !== 0 ? '₹' + formatIndianCurrency(loanResultObj.result['last_month_settlement']) : '-';
+                interestOnLumpsumObj[type] = loanResultObj.result['interest_on_Lumpsum'] !== 0 ? '₹' + formatIndianCurrency(loanResultObj.result['interest_on_Lumpsum']) : '-';
+                totalLastMonthPaymentObj[type] = loanResultObj.result['total_last_month_payment'] !== 0 ? '₹' + formatIndianCurrency(loanResultObj.result['total_last_month_payment']) : '-';
+                durationInMonthsObj[type] = loanResultObj.result['duration_in_months'];
+                totalPaymentObj[type] = '₹' + formatIndianCurrency(Math.round(loanResultObj.result['total_payment']));
+                principalObj[type] = '₹' + formatIndianCurrency(Math.round(loanResultObj.result['principal']));
+                interestObj[type] = '₹' + formatIndianCurrency(Math.round(loanResultObj.result['interest']));
+            });
+            loanData.push(maxEligibleAmountObj);
+            loanData.push(approvedAmountObj);
+            loanData.push(actualEMIObj);
+            loanData.push(lastMonthSettlementObj);
+            loanData.push(interestOnLumpsumObj);
+            loanData.push(totalLastMonthPaymentObj);
+            loanData.push(durationInMonthsObj);
+            loanData.push(totalPaymentObj);
+            loanData.push(principalObj);
+            loanData.push(interestObj);
+            const tbody = document.querySelector("#loanTable tbody");
+            $("#loanTable tbody").empty();
+            loanData.forEach(row => {
+                const tr = document.createElement("tr");
+                for (const key in row) {
+                    const td = document.createElement("td");
+                    if (key !== "property") {
+                        td.classList.add("text-center");
+                    }
+                    if (fixedLoanTypeArr.includes(key)) {
+                        td.classList.add("bg-fixed");
+                        td.innerHTML = row[key];
+                    } else if (key == "property") {
+                        td.classList.add("bg-white");
+                        td.innerHTML = row[key];
+                    }
+                    else {
+                        td.classList.add("bg-variable");
+                        td.innerHTML = row[key];
+                    }
+                    if (lastmonthhighlightsArr.includes(row.property) && key !== "property") {
+                        td.classList.add('bg-highlights');
+                    }
+
+                    if (highlightsAmountArr.includes(row.property)) {
+                        td.classList.add('row-highlights');
+                    }
+                    tr.appendChild(td);
+                }
+                tbody.appendChild(tr);
+            });
+            $('#results').show();
+            const resultsDiv = document.getElementById("results");
+            resultsDiv.scrollIntoView({ behavior: "smooth" });
+        }
+
+        function calculateMonthlyEMI(type) {
+            const annualIncome = $("#annualIncome").val();
+            const annualInterestRate = parseInt($("#interest").val(), 10);
+            const debtIncomeRatio = $("#debtIncomeRatio").val();
+            const tenureMonths = parseInt($("#tenureYears").val(), 10) * 12;
+            const desiredEMI = parseInt($("#desiredEMI").val(), 10);
+            const lumpsumAmount = parseInt($('#lumpsumAmount').val(), 10);
+            const stepUpDownPercentage = parseInt($("#stepUpDown").val(), 10);
+            const monthlyIncome = annualIncome / 12;
+            const loanAmount = parseInt($('#loanAmount').val(), 10);
+            const monthlyInterestRate = (annualInterestRate / 12) / 100;
+            const maxEligibleLoanAmount = Math.round(pv(monthlyInterestRate, tenureMonths, -desiredEMI));
+            const maxEligibleEMI = (annualIncome / 12) * (debtIncomeRatio / 100);
+            var actualEMIAmount = 0;
+            var approvedLoanAmount = 0;
+            var openingBalanceAmount = 0;
+            let lastMonthSettlementAmount = 0;
+            let interestOnLumpsumAmount = 0;
+            let totalLastMonthPaymentAmount = 0;
+            if (type === 'EIGHT_YEAR_FUNDING') {
+                if (loanAmount > maxEligibleLoanAmount) {
+                    approvedLoanAmount = maxEligibleLoanAmount;
+                } else {
+                    approvedLoanAmount = loanAmount;
+                }
+                actualEMIAmount = Math.round(pmt(monthlyInterestRate, defaultSet.eightYearFunding, -approvedLoanAmount));
+                openingBalanceAmount = approvedLoanAmount;
+            } else if (type === 'BALLON') {
+                if (loanAmount > maxEligibleLoanAmount) {
+                    approvedLoanAmount = maxEligibleLoanAmount;
+                } else {
+                    approvedLoanAmount = loanAmount;
+                }
+                actualEMIAmount = Math.round(pmt(monthlyInterestRate, tenureMonths, -(approvedLoanAmount - lumpsumAmount)));
+                openingBalanceAmount = approvedLoanAmount - lumpsumAmount;
+            } else {
+                if (loanAmount > maxEligibleLoanAmount) {
+                    approvedLoanAmount = maxEligibleLoanAmount;
+                } else {
+                    approvedLoanAmount = loanAmount;
+                }
+                actualEMIAmount = actualEMIAmount = Math.round(pmt(monthlyInterestRate, tenureMonths, -approvedLoanAmount));
+                openingBalanceAmount = approvedLoanAmount;
+            }
+            let arr = [];
+            let currentEMI = actualEMIAmount;
+            let stepUpDownPeriod = defaultSet.stepUpDownPeriod;
+            let month = 1;
+            let totalInterestPaid = 0;
+            let interestPaid = 0;
+            let totalTenureMonths = 0;
+            while (openingBalanceAmount > 0 && month <= (type !== 'EIGHT_YEAR_FUNDING' ? tenureMonths : defaultSet.eightYearFunding)) {
+                let interestForTheMonth = (openingBalanceAmount * ((annualInterestRate / 100) / 12));
+                let principalPayment = currentEMI - interestForTheMonth;
+                if (principalPayment > openingBalanceAmount) {
+                    principalPayment = openingBalanceAmount;
+                    currentEMI = principalPayment + interestForTheMonth;
+                }
+                let closingBalance = openingBalanceAmount - principalPayment;
+                if (closingBalance > 0) {
+                    arr.push({
+                        month: month,
+                        openingBalance: openingBalanceAmount.toFixed(2),
+                        interestForTheMonth: interestForTheMonth.toFixed(2),
+                        principalPayment: principalPayment.toFixed(2),
+                        EMI: currentEMI.toFixed(2),
+                        closingBalance: closingBalance.toFixed(2)
+                    });
+                    month++;
+                    totalTenureMonths = month;
+                }
+                totalInterestPaid += (currentEMI);
+                interestPaid += interestForTheMonth;
+                openingBalanceAmount = closingBalance;
+                if ((month - 1) % stepUpDownPeriod === 0) {
+                    if (type === 'STEP_UP' || type === 'STEP_UP_BALLON') {
+                        currentEMI = currentEMI + (currentEMI * stepUpDownPercentage / 100);
+                    } else if (type === 'STEP_DOWN') {
+                        console.log(currentEMI - (currentEMI * stepUpDownPercentage / 100))
+                        currentEMI = currentEMI - (currentEMI * stepUpDownPercentage / 100);
+                    } else if (type === 'BULLET') {
+                        currentEMI = lumpsumAmount + currentEMI;
+                    }
+                } else {
+                    if (type === 'BULLET') {
+                        currentEMI = actualEMIAmount;
+                    }
+                }
+            }
+            if (arr[arr.length - 1].closingBalance > 0) {
+                if (type === 'BALLON' || type === 'STEP_UP_BALLON') {
+                    lastMonthSettlementAmount = lumpsumAmount + parseInt(arr[arr.length - 1].closingBalance, 10);
+                    interestOnLumpsumAmount = Math.round((lumpsumAmount * monthlyInterestRate) * tenureMonths);
+                    totalLastMonthPaymentAmount = Math.round(lastMonthSettlementAmount + interestOnLumpsumAmount);
+                } else {
+                    lastMonthSettlementAmount = parseInt(arr[arr.length - 1].closingBalance, 10);
+                }
+            } else if (type === 'BALLON') {
+                lastMonthSettlementAmount = lumpsumAmount;
+                interestOnLumpsumAmount = Math.round((lumpsumAmount * monthlyInterestRate) * tenureMonths);
+                totalLastMonthPaymentAmount = Math.round(lastMonthSettlementAmount + interestOnLumpsumAmount);
+            }
+            var loanResult = {
+                max_eligible_amount: maxEligibleLoanAmount,
+                annualInterestRate: annualInterestRate,
+                approved_amount: approvedLoanAmount,
+                actual_EMI: actualEMIAmount,
+                last_month_settlement: lastMonthSettlementAmount,
+                interest_on_Lumpsum: interestOnLumpsumAmount,
+                total_last_month_payment: totalLastMonthPaymentAmount,
+                duration_in_months: arr.length,
+                total_payment: Math.round(totalInterestPaid),
+                principal: approvedLoanAmount,
+                interest: interestPaid
+            };
+            return { result: loanResult, emiSet: arr };
+        }
+
+        function showMonthlyEMI() {
+            $("#allEligibleLoanType").empty();
+            eligibleloanTypeArr.forEach(loanType => {
+                var btnChip = `<button type="button" class="btn btn-outline-secondary m-sm-2 me-2 emi-loan-chip active" data-emi-loan-type="${loanType}" onclick="displayEMI('${loanType}')">${LoanTypeEnum.get(loanType)}</button>`;
+                $("#allEligibleLoanType").append(btnChip);
+            });
+            displayEMI(eligibleloanTypeArr[0]);
+            $('#exampleModalLong').modal('show');
+        }
+
+        function closeMonthlyEMI() {
+            $('#exampleModalLong').modal('hide');
+        }
+        function displayEMI(type) {
+            $('.emi-loan-chip').removeClass('active');
+            $("*[data-emi-loan-type='" + type + "']").addClass("active");
+            $("#EMITable tbody").empty();
+            const tbody = document.querySelector("#EMITable tbody");
+            var loanEMIs = loansDataSet.filter(loan => loan.loantype === type).map(loan => loan.emiValues);
+            var loanResult = loansDataSet.filter(loan => loan.loantype === type).map(loan => loan.result);
+            loanResult = loanResult.flat();
+            $('#emi-result-card').empty();
+            const emiResult = `<div class="row m-4 p-4">
+                                    <div class="col-sm-6 col-md-3 text-center">
+                                        <h6>Loan Amount (₹)</h6>
+                                        <label class="eligibilty-value" id="monthlyEligiblelabel">${'₹' + formatIndianCurrency(Math.round(loanResult[0].approved_amount))}</label>
+                                    </div>
+                                    <div class="col-sm-6 col-md-3 text-center">
+                                        <h6>Interest Rate (%) (₹)
+                                        </h6>
+                                        <label class="eligibilty-value" id="monthlyEligiblelabel">${loanResult[0].annualInterestRate} %</label>
+                                    </div>
+                                    <div class="col-sm-6 col-md-3 text-center">
+                                        <h6>Loan Tenture</h6>
+                                        <label class="eligibilty-value" id="monthlyEligiblelabel">${loanResult[0].duration_in_months} Months</label>
+                                    </div>
+                                    <div class="col-sm-6 col-md-3 text-center">
+                                        <h6>Interest Paid (₹)</h6>
+                                        <label class="eligibilty-value" id="monthlyEligiblelabel">${'₹' + formatIndianCurrency(Math.round(loanResult[0].interest))}</label>
+                                    </div>
+                                </div>`;
+            $('#emi-result-card').append(emiResult);
+            loanEMIs = loanEMIs.flat();
+            loanEMIs.forEach((row) => {
+                const tr = document.createElement("tr");
+                for (const key in row) {
+                    console.log(row)
+                    const td = document.createElement("td");
+                    td.classList.add("text-center");
+                    if (key == "EMI") {
+                        if ((type === 'STEP_UP' || type === 'STEP_UP_BALLON' || type === 'STEP_DOWN' || type === 'BULLET') && (row['month'] - 1) % defaultSet.stepUpDownPeriod === 0) {
+                            td.classList.add("bg-warning");
+                        } else {
+                            td.classList.add("bg-emi");
+                        }
+                    }
+                    if (key === 'month') {
+                        td.innerHTML = row[key];
+                    } else {
+                        td.innerHTML = Math.round(row[key]) !== 0 ? '₹' + formatIndianCurrency(Math.round(row[key])) : '-';
+                    }
+                    tr.appendChild(td);
+                }
+                tbody.appendChild(tr);
+            });
+        }
+
+        function pv(rate, nper, pmt, fv = 0, type = 0) {
+            if (rate === 0) return -((pmt * nper) + fv);
+            if (type !== 0 && type !== 1) return null;
+            const pvAnnuity = pmt * (1 + rate * type) * (1 - Math.pow(1 + rate, -nper)) / rate;
+            const pvFV = fv * Math.pow(1 + rate, -nper);
+            return -(pvAnnuity + pvFV);
+        }
+
+        function pmt(rate, nper, pval, fv = 0, type = 0) {
+            if (rate === 0) return -(pval + fv) / nper;
+            if (nper === 0) throw new Error('Number of periods cannot be 0');
+            /** @type {Number} */
+            const pvFactor = Math.pow(1 + rate, nper);
+            /** @type {Number} */
+            let pmt = -rate * (pval * pvFactor + fv) / (pvFactor - 1);
+            return type === 0 ? pmt : type === 1 ? pmt / (1 + rate) : 0;
+        }
+
+    </script>
+</body>
+
+</html>
