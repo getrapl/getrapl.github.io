@@ -497,9 +497,10 @@
             $('#loanAmountLabel').text('₹' + formatIndianCurrency(slider.value))
         }
 
-        function formatIndianCurrency(value) {
-            const number = parseInt(value.toString().replace(/,/g, "")) || 0;
-            return number.toLocaleString("en-IN");
+        function formatIndianCurrency(input) {
+            // const number = parseInt(value.toString().replace(/,/g, "")) || 0;
+            // return number.toLocaleString("en-IN");
+            return input;
         }
 
         function formatNumber(input) {
