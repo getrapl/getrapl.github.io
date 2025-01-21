@@ -648,7 +648,7 @@
             const monthlyInterestRate = (annualInterestRate / 12) / 100;
 
             const maxEligibleEMI = (annualIncome / 12) * (debtIncomeRatio / 100);
-            const targetEMI = (desiredEMI ===0 ) || (desiredEMI > maxEligibleEMI) ? maxEligibleEMI : desiredEMI;
+            const targetEMI = (desiredEMI === 0 ) || (desiredEMI > maxEligibleEMI) ? maxEligibleEMI : desiredEMI;
             const maxEligibleLoanAmount = Math.round(pv(monthlyInterestRate, tenureMonths, -targetEMI));
 
             var actualEMIAmount = 0;
@@ -673,6 +673,14 @@
                 }
                 actualEMIAmount = Math.round(pmt(monthlyInterestRate, tenureMonths, -(approvedLoanAmount - lumpsumAmount)));
                 openingBalanceAmount = approvedLoanAmount - lumpsumAmount;
+            } else if(type === 'STEP_UP' || type === 'STEP_UP_BALLON' || type === 'STEP_DOWN' || type === 'BULLET' ) {
+                if (loanAmount > maxEligibleLoanAmount) {
+                    approvedLoanAmount = maxEligibleLoanAmount;
+                } else {
+                    approvedLoanAmount = loanAmount;
+                }
+                actualEMIAmount = Math.round(desiredEMI);
+                openingBalanceAmount = approvedLoanAmount;
             } else {
                 if (loanAmount > maxEligibleLoanAmount) {
                     approvedLoanAmount = maxEligibleLoanAmount;
