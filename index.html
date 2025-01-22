@@ -710,8 +710,8 @@
                 }
                 stepUploanEMIs = stepUploanEMIs.flat();
                 maxEligibleLoanAmount = calulateStepUPHigherLoan(type, stepUploanEMIs);
-                console.log(stepUploanEMIs)
-                console.log(maxEligibleLoanAmount)
+                console.log(type,stepUploanEMIs)
+                console.log(type,maxEligibleLoanAmount)
                 if (loanAmount > maxEligibleLoanAmount) {
                     approvedLoanAmount = maxEligibleLoanAmount;
                 } else {
@@ -769,12 +769,10 @@
                     } else if (type === 'STEP_DOWN') {
                         currentEMI = currentEMI - (currentEMI * stepUpDownPercentage / 100);
                     } else if (type === 'BULLET' || type === 'BULLET_HIGHER') {
-                        console.log(type, currentEMI)
                         currentEMI = lumpsumAmount + currentEMI;
                     }
                 } else {
                     if (type === 'BULLET' || type === 'BULLET_HIGHER') {
-                        console.log(type, currentEMI)
                         currentEMI = actualEMIAmount;
                     }
                 }
@@ -815,7 +813,6 @@
             let stepUpDownPercentage = parseInt($("#stepUpDown").val(), 10);
             let tenureMonths = parseInt($("#tenureYears").val(), 10) * 12;
             let currentOpeningBalance = parseInt(stepUpLoanEMIs[0].openingBalance);
-            console.log('currentOpeningBalance  currentOpeningBalance currentOpeningBalance', currentOpeningBalance);
             for (let currentMonth = stepUpLoanEMIs.length + 1; currentMonth <= 60; currentMonth++) {
                 stepUpLoanEMIs = calculatePrincipalWithIncreasingEMI(type, currentOpeningBalance + desiredEMI, desiredEMI, annualInterestRate, tenureMonths, stepUpDownPercentage);
                 currentOpeningBalance = parseInt(stepUpLoanEMIs.totalPrincipalPayment);
@@ -853,7 +850,7 @@
                 totalPrincipalPayment = totalPrincipalPayment + principalPayment;
                 openingBalanceAmount = closingBalance;
                 if ((month - 1) % stepUpDownPeriod === 0) {
-                    if (type === 'STEP_UP_BALLON' || type === 'STEP_UP_HIGHER') {
+                    if (type === 'STEP_UP_HIGHER' || type === 'STEP_UP_BALLON_HIGHER') {
                         currentEMI = currentEMI + (currentEMI * stepUpDownPercentage / 100);
                     } else if (type === 'BULLET' || type === 'BULLET_HIGHER') {
                         currentEMI = lumpsumAmount + currentEMI;
@@ -919,7 +916,7 @@
                     const td = document.createElement("td");
                     td.classList.add("text-center");
                     if (key == "EMI") {
-                        if ((type === 'STEP_UP' || type === 'STEP_UP_HIGHER' || type === 'BULLET_HIGHER' || type === 'STEP_UP_BALLON' || type === 'STEP_DOWN' || type === 'BULLET') && (row['month'] - 1) % defaultSet.stepUpDownPeriod === 0) {
+                        if ((type === 'STEP_UP' || type === 'STEP_UP_HIGHER' || type === 'STEP_UP_BALLON_HIGHER' ||  type === 'BULLET_HIGHER' || type === 'STEP_UP_BALLON' || type === 'STEP_DOWN' || type === 'BULLET') && (row['month'] - 1) % defaultSet.stepUpDownPeriod === 0) {
                             td.classList.add("bg-warning");
                         } else {
                             td.classList.add("bg-emi");
