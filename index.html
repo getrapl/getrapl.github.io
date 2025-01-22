@@ -224,7 +224,18 @@
                                         onclick="this.select()" />
                                 </div>
                                 <input type="range" class="mx-2 p-0" id="annualIncomeRange" min="300000" max="10000000"
-                                    step="1000" oninput="updateAnnualIncome(this)" />
+                                    step="25000" oninput="updateAnnualIncome(this)" />
+                            </div>
+                            <div class="row col-lg-12 mb-4">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <label for="loanAmount" class="form-label">Loan Amount (₹)</label>
+                                    <label class="form-input-label" id="loanAmountLabel">10</label>
+                                    <input type="text" class="form-control mt-2 d-none" id="loanAmount"
+                                        placeholder="Enter loan amount" required oninput="formatNumber(this)"
+                                        onclick="this.select()" />
+                                </div>
+                                <input type="range" class="mx-2 p-0" id="loanAmountRange" min="300000" max="5000000"
+                                    step="50000" oninput="updateLoanAmount(this)" />
                             </div>
                             <div class="row col-lg-12 mb-4">
                                 <div class="col-lg-5">
@@ -257,6 +268,7 @@
                                         <option value="40">40%</option>
                                         <option value="45">45%</option>
                                         <option value="50">50%</option>
+                                        <option value="60">60%</option>
                                     </select>
                                 </div>
                                 <div class="col-lg-7">
@@ -266,17 +278,7 @@
                                         onclick="this.select()" />
                                 </div>
                             </div>
-                            <div class="row col-lg-12 mb-4">
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <label for="loanAmount" class="form-label">Loan Amount (₹)</label>
-                                    <label class="form-input-label" id="loanAmountLabel">10</label>
-                                    <input type="text" class="form-control mt-2 d-none" id="loanAmount"
-                                        placeholder="Enter loan amount" required oninput="formatNumber(this)"
-                                        onclick="this.select()" />
-                                </div>
-                                <input type="range" class="mx-2 p-0" id="loanAmountRange" min="300000" max="10000000"
-                                    step="100000" oninput="updateLoanAmount(this)" />
-                            </div>
+                            
                         </div>
                         <div class="col-lg-6 p-lg-4">
                             <div class="row mb-3">
@@ -362,6 +364,12 @@
                             </div>
                         </div>
                         <div class="table-responsive">
+                            <div class="d-flex justify-content-end">
+                                <button type="button" class="btn btn-link text-uppercase" data-toggle="modal"
+                                    data-target="#exampleModalLong" onclick="showMonthlyEMI()">
+                                    view monthly EMI
+                                </button>
+                            </div>
                             <table id="loanTable" class="table table-bordered">
                                 <thead class="table-light">
                                     <tr>
@@ -376,12 +384,7 @@
                                 </tbody>
                             </table>
                         </div>
-                        <div class="d-flex justify-content-end">
-                            <button type="button" class="btn btn-link text-uppercase" data-toggle="modal"
-                                data-target="#exampleModalLong" onclick="showMonthlyEMI()">
-                                view monthly EMI
-                            </button>
-                        </div>
+                        
                     </div>
             </div>
         </div>
@@ -453,8 +456,8 @@
             loanAmount: 600000,
             interest: 10,
             tenureYears: 5,
-            desiredEMI: 30000,
-            debtIncomeRatio: 40,
+            desiredEMI: 25000,
+            debtIncomeRatio: 50,
             lumpsumAmount: 50000,
             eightYearFunding: 96,
             stepUpDown: 10,
@@ -611,10 +614,11 @@
             loanData.push(maxEligibleAmountObj);
             loanData.push(approvedAmountObj);
             loanData.push(actualEMIObj);
+            loanData.push(durationInMonthsObj);
+
             loanData.push(lastMonthSettlementObj);
             loanData.push(interestOnLumpsumObj);
             loanData.push(totalLastMonthPaymentObj);
-            loanData.push(durationInMonthsObj);
             loanData.push(totalPaymentObj);
             loanData.push(principalObj);
             loanData.push(interestObj);
@@ -699,19 +703,27 @@
                     approvedLoanAmount = loanAmount;
                 }
                 actualEMIAmount = Math.round(desiredEMI);
-                openingBalanceAmount = approvedLoanAmount;
+                if (type === 'STEP_UP_BALLON') {
+                    openingBalanceAmount = approvedLoanAmount - lumpsumAmount;
+                } else {
+                    openingBalanceAmount = approvedLoanAmount;
+                }
+
             }
             else if (type === 'STEP_UP_HIGHER' || type === 'STEP_UP_BALLON_HIGHER' || type === 'BULLET_HIGHER') {
                 var stepUploanEMIs = [];
                 if (type === 'STEP_UP_HIGHER' || type === 'STEP_UP_BALLON_HIGHER') {
-                    var stepUploanEMIs = loansDataSet.filter(loan => loan.loantype === 'STEP_UP').map(loan => loan.emiValues);
+                    stepUploanEMIs = loansDataSet.filter(loan => loan.loantype === 'STEP_UP').map(loan => loan.emiValues);
                 } else {
-                    var stepUploanEMIs = loansDataSet.filter(loan => loan.loantype === 'BULLET').map(loan => loan.emiValues);
+                    stepUploanEMIs = loansDataSet.filter(loan => loan.loantype === 'BULLET').map(loan => loan.emiValues);
                 }
+
                 stepUploanEMIs = stepUploanEMIs.flat();
-                maxEligibleLoanAmount = calulateStepUPHigherLoan(type, stepUploanEMIs);
-                console.log(type,stepUploanEMIs)
-                console.log(type,maxEligibleLoanAmount)
+                maxEligibleLoanAmount = calulateStepUPHigherLoan(type, stepUploanEMIs) ;
+                if (type === 'STEP_UP_BALLON_HIGHER') {
+                    maxEligibleLoanAmount = maxEligibleLoanAmount + lumpsumAmount;
+                }
+                
                 if (loanAmount > maxEligibleLoanAmount) {
                     approvedLoanAmount = maxEligibleLoanAmount;
                 } else {
@@ -785,7 +797,7 @@
                 } else {
                     lastMonthSettlementAmount = parseInt(arr[arr.length - 1].closingBalance, 10);
                 }
-            } else if (type === 'BALLON') {
+            } else if (type === 'BALLON' || type === 'STEP_UP_BALLON' || type === 'STEP_UP_BALLON_HIGHER') {
                 lastMonthSettlementAmount = lumpsumAmount;
                 interestOnLumpsumAmount = Math.round((lumpsumAmount * monthlyInterestRate) * tenureMonths);
                 totalLastMonthPaymentAmount = Math.round(lastMonthSettlementAmount + interestOnLumpsumAmount);
@@ -795,10 +807,10 @@
                 annualInterestRate: annualInterestRate,
                 approved_amount: approvedLoanAmount,
                 actual_EMI: actualEMIAmount,
+                duration_in_months: arr.length,
                 last_month_settlement: lastMonthSettlementAmount,
                 interest_on_Lumpsum: interestOnLumpsumAmount,
                 total_last_month_payment: totalLastMonthPaymentAmount,
-                duration_in_months: arr.length,
                 total_payment: Math.round(totalPaymentPaid + totalLastMonthPaymentAmount),
                 principal: approvedLoanAmount,
                 interest: totalInterestPaid
