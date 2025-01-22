@@ -156,6 +156,10 @@
             background: #EEEFFE !important;
         }
 
+        .bg-higher {
+            background: #c7e6ff !important
+        }
+
         .bg-highlights {
             background: #C8CDFF !important;
         }
@@ -434,9 +438,12 @@
             ["STEP_UP_BALLON", "Step Up & Balloon"],
             ["STEP_DOWN", "Step Down"],
             ["BULLET", "Bullet"],
-            ["STEP_UP_HIGHER_LOAN", "Step Up (Higher)"]
+            ["STEP_UP_HIGHER", "Step Up (Higher)"],
+            ["STEP_UP_BALLON_HIGHER", "Step Up & Balloon (Higher)"],
+            ["BULLET_HIGHER", "Bullet (Higher)"]
         ]);
         var fixedLoanTypeArr = ['VANILLA', 'EIGHT_YEAR_FUNDING', 'BALLON'];
+        var higherLoanTypeArr = ['STEP_UP_HIGHER', 'STEP_UP_BALLON_HIGHER', 'BULLET_HIGHER'];
         var lastmonthhighlightsArr = ['Last month settlement', 'Interest on Lumpsum', 'Total last month payment'];
         var highlightsAmountArr = ['Actual EMI', 'Duration in months', 'Interest'];
         var defaultSet = {
@@ -551,10 +558,11 @@
                 eligibleloanTypeArr.push("BALLON")
             }
             if (cibilScore >= 725) {
-                eligibleloanTypeArr.push('STEP_UP', 'STEP_UP_BALLON', 'STEP_DOWN', 'BULLET', 'STEP_UP_HIGHER_LOAN')
+                // 'BULLET_HIGHER'
+                eligibleloanTypeArr.push('STEP_UP', 'STEP_UP_BALLON', 'STEP_DOWN', 'BULLET', 'STEP_UP_HIGHER', 'STEP_UP_BALLON_HIGHER');
             }
             if (lumpsumAmount === 0) {
-                let valuesToRemove = ['BALLON', 'STEP_UP_BALLON', 'BULLET'];
+                let valuesToRemove = ['BALLON', 'STEP_UP_BALLON', 'BULLET', 'STEP_UP_BALLON_HIGHER', 'BULLET_HIGHER'];
                 eligibleloanTypeArr = eligibleloanTypeArr.filter(item => !valuesToRemove.includes(item));
             }
             const loanData = [];
@@ -564,6 +572,8 @@
                 $("<th>").addClass("text-center")
                 if (fixedLoanTypeArr.includes(loanType)) {
                     $th.addClass("bg-fixed");
+                } else if (higherLoanTypeArr.includes(loanType)) {
+                    $th.addClass("bg-higher");
                 } else {
                     $th.addClass("bg-variable");
                 }
@@ -619,14 +629,14 @@
                     }
                     if (fixedLoanTypeArr.includes(key)) {
                         td.classList.add("bg-fixed");
-                        td.innerHTML = row[key];
+                    } else if (higherLoanTypeArr.includes(key)) {
+                        td.classList.add("bg-higher");
                     } else if (key == "property") {
                         td.classList.add("bg-white");
-                        td.innerHTML = row[key];
                     }
                     else {
                         td.classList.add("bg-variable");
-                        td.innerHTML = row[key];
+
                     }
                     if (lastmonthhighlightsArr.includes(row.property) && key !== "property") {
                         td.classList.add('bg-highlights');
@@ -635,6 +645,7 @@
                     if (highlightsAmountArr.includes(row.property)) {
                         td.classList.add('row-highlights');
                     }
+                    td.innerHTML = row[key];
                     tr.appendChild(td);
                 }
                 tbody.appendChild(tr);
@@ -645,7 +656,6 @@
         }
 
         function calculateMonthlyEMI(type) {
-            console.log(type)
             const annualIncome = $("#annualIncome").val();
             const annualInterestRate = parseInt($("#interest").val(), 10);
             const debtIncomeRatio = $("#debtIncomeRatio").val();
@@ -656,11 +666,9 @@
             const monthlyIncome = annualIncome / 12;
             const loanAmount = parseInt($('#loanAmount').val(), 10);
             const monthlyInterestRate = (annualInterestRate / 12) / 100;
-
             const maxEligibleEMI = (annualIncome / 12) * (debtIncomeRatio / 100);
             const targetEMI = (desiredEMI === 0) || (desiredEMI > maxEligibleEMI) ? maxEligibleEMI : desiredEMI;
             var maxEligibleLoanAmount = Math.round(pv(monthlyInterestRate, tenureMonths, -targetEMI));
-
             var actualEMIAmount = 0;
             var approvedLoanAmount = 0;
             var openingBalanceAmount = 0;
@@ -668,6 +676,7 @@
             let interestOnLumpsumAmount = 0;
             let totalLastMonthPaymentAmount = 0;
             if (type === 'EIGHT_YEAR_FUNDING') {
+                maxEligibleLoanAmount = Math.round(pv(monthlyInterestRate, defaultSet.eightYearFunding, -targetEMI))
                 if (loanAmount > maxEligibleLoanAmount) {
                     approvedLoanAmount = maxEligibleLoanAmount;
                 } else {
@@ -691,18 +700,31 @@
                 }
                 actualEMIAmount = Math.round(desiredEMI);
                 openingBalanceAmount = approvedLoanAmount;
-            } else if (type === 'STEP_UP_HIGHER_LOAN') {
-                var stepUploanEMIs = loansDataSet.filter(loan => loan.loantype === 'STEP_UP').map(loan => loan.emiValues);
+            }
+            else if (type === 'STEP_UP_HIGHER' || type === 'STEP_UP_BALLON_HIGHER' || type === 'BULLET_HIGHER') {
+                var stepUploanEMIs = [];
+                if (type === 'STEP_UP_HIGHER' || type === 'STEP_UP_BALLON_HIGHER') {
+                    var stepUploanEMIs = loansDataSet.filter(loan => loan.loantype === 'STEP_UP').map(loan => loan.emiValues);
+                } else {
+                    var stepUploanEMIs = loansDataSet.filter(loan => loan.loantype === 'BULLET').map(loan => loan.emiValues);
+                }
                 stepUploanEMIs = stepUploanEMIs.flat();
-                maxEligibleLoanAmount = calulateStepUPHigherLoan(stepUploanEMIs);
+                maxEligibleLoanAmount = calulateStepUPHigherLoan(type, stepUploanEMIs);
+                console.log(stepUploanEMIs)
+                console.log(maxEligibleLoanAmount)
                 if (loanAmount > maxEligibleLoanAmount) {
                     approvedLoanAmount = maxEligibleLoanAmount;
                 } else {
                     approvedLoanAmount = loanAmount;
                 }
-                actualEMIAmount = Math.round(desiredEMI)
-                openingBalanceAmount = approvedLoanAmount;
-            } else {
+                actualEMIAmount = Math.round(desiredEMI);
+                if (type === 'STEP_UP_BALLON_HIGHER') {
+                    openingBalanceAmount = approvedLoanAmount - lumpsumAmount;
+                } else {
+                    openingBalanceAmount = approvedLoanAmount;
+                }
+            }
+            else {
                 if (loanAmount > maxEligibleLoanAmount) {
                     approvedLoanAmount = maxEligibleLoanAmount;
                 } else {
@@ -715,8 +737,8 @@
             let currentEMI = actualEMIAmount;
             let stepUpDownPeriod = defaultSet.stepUpDownPeriod;
             let month = 1;
+            let totalPaymentPaid = 0;
             let totalInterestPaid = 0;
-            let interestPaid = 0;
             let totalTenureMonths = 0;
             while (openingBalanceAmount > 0 && month <= (type !== 'EIGHT_YEAR_FUNDING' ? tenureMonths : defaultSet.eightYearFunding)) {
                 let interestForTheMonth = (openingBalanceAmount * ((annualInterestRate / 100) / 12));
@@ -738,25 +760,27 @@
                     month++;
                     totalTenureMonths = month;
                 }
-                totalInterestPaid += (currentEMI);
-                interestPaid += interestForTheMonth;
+                totalPaymentPaid += (currentEMI);
+                totalInterestPaid += interestForTheMonth;
                 openingBalanceAmount = closingBalance;
                 if ((month - 1) % stepUpDownPeriod === 0) {
-                    if (type === 'STEP_UP' || type === 'STEP_UP_BALLON' || type === 'STEP_UP_HIGHER_LOAN') {
+                    if (type === 'STEP_UP' || type === 'STEP_UP_BALLON' || type === 'STEP_UP_HIGHER' || type === 'STEP_UP_BALLON_HIGHER') {
                         currentEMI = currentEMI + (currentEMI * stepUpDownPercentage / 100);
                     } else if (type === 'STEP_DOWN') {
                         currentEMI = currentEMI - (currentEMI * stepUpDownPercentage / 100);
-                    } else if (type === 'BULLET') {
+                    } else if (type === 'BULLET' || type === 'BULLET_HIGHER') {
+                        console.log(type, currentEMI)
                         currentEMI = lumpsumAmount + currentEMI;
                     }
                 } else {
-                    if (type === 'BULLET') {
+                    if (type === 'BULLET' || type === 'BULLET_HIGHER') {
+                        console.log(type, currentEMI)
                         currentEMI = actualEMIAmount;
                     }
                 }
             }
             if (arr[arr.length - 1].closingBalance > 0) {
-                if (type === 'BALLON' || type === 'STEP_UP_BALLON') {
+                if (type === 'BALLON' || type === 'STEP_UP_BALLON' || type === 'STEP_UP_BALLON_HIGHER') {
                     lastMonthSettlementAmount = lumpsumAmount + parseInt(arr[arr.length - 1].closingBalance, 10);
                     interestOnLumpsumAmount = Math.round((lumpsumAmount * monthlyInterestRate) * tenureMonths);
                     totalLastMonthPaymentAmount = Math.round(lastMonthSettlementAmount + interestOnLumpsumAmount);
@@ -768,11 +792,6 @@
                 interestOnLumpsumAmount = Math.round((lumpsumAmount * monthlyInterestRate) * tenureMonths);
                 totalLastMonthPaymentAmount = Math.round(lastMonthSettlementAmount + interestOnLumpsumAmount);
             }
-
-            if (type === 'EIGHT_YEAR_FUNDING') {
-                maxEligibleLoanAmount = Math.round(pv(monthlyInterestRate, defaultSet.eightYearFunding, -targetEMI))
-            }
-            console.log(maxEligibleLoanAmount)
             var loanResult = {
                 max_eligible_amount: maxEligibleLoanAmount,
                 annualInterestRate: annualInterestRate,
@@ -782,31 +801,27 @@
                 interest_on_Lumpsum: interestOnLumpsumAmount,
                 total_last_month_payment: totalLastMonthPaymentAmount,
                 duration_in_months: arr.length,
-                total_payment: Math.round(totalInterestPaid),
+                total_payment: Math.round(totalPaymentPaid + totalLastMonthPaymentAmount),
                 principal: approvedLoanAmount,
-                interest: interestPaid
+                interest: totalInterestPaid
             };
             return { result: loanResult, emiSet: arr };
         }
 
-        function calulateStepUPHigherLoan(stepUpLoanEMIs) {
+        function calulateStepUPHigherLoan(type, stepUpLoanEMIs) {
             let desiredEMI = parseInt($("#desiredEMI").val(), 10);
             let annualInterestRate = parseInt($("#interest").val(), 10);
             let stepUpDownPeriod = defaultSet.stepUpDownPeriod;
             let stepUpDownPercentage = parseInt($("#stepUpDown").val(), 10);
             let tenureMonths = parseInt($("#tenureYears").val(), 10) * 12;
             let currentOpeningBalance = parseInt(stepUpLoanEMIs[0].openingBalance);
+            console.log('currentOpeningBalance  currentOpeningBalance currentOpeningBalance', currentOpeningBalance);
             for (let currentMonth = stepUpLoanEMIs.length + 1; currentMonth <= 60; currentMonth++) {
-                console.log('currentMonth', currentMonth)
-
-                stepUpLoanEMIs = calculatePrincipalWithIncreasingEMI('STEP_UP_HIGHER_LOAN', currentOpeningBalance + desiredEMI, desiredEMI, annualInterestRate, tenureMonths, stepUpDownPercentage);
-
+                stepUpLoanEMIs = calculatePrincipalWithIncreasingEMI(type, currentOpeningBalance + desiredEMI, desiredEMI, annualInterestRate, tenureMonths, stepUpDownPercentage);
                 currentOpeningBalance = parseInt(stepUpLoanEMIs.totalPrincipalPayment);
-
             }
             return parseInt(stepUpLoanEMIs.totalPrincipalPayment, 10);
         }
-
 
         function calculatePrincipalWithIncreasingEMI(type, openingBalanceAmount, currentEMI, annualInterestRate, tenureMonths, stepUpDownPercentage) {
             let stepUpDownPeriod = defaultSet.stepUpDownPeriod;
@@ -814,6 +829,7 @@
             let resultArr = [];
             let principalPayment = 0;
             totalPrincipalPayment = 0;
+            let actualEMIAmount = currentEMI;
             while (openingBalanceAmount > 0 && month <= tenureMonths) {
                 let interestForTheMonth = (openingBalanceAmount * ((annualInterestRate / 100) / 12));
                 principalPayment = currentEMI - interestForTheMonth;
@@ -837,13 +853,13 @@
                 totalPrincipalPayment = totalPrincipalPayment + principalPayment;
                 openingBalanceAmount = closingBalance;
                 if ((month - 1) % stepUpDownPeriod === 0) {
-                    if (type === 'STEP_UP_BALLON' || type === 'STEP_UP_HIGHER_LOAN') {
+                    if (type === 'STEP_UP_BALLON' || type === 'STEP_UP_HIGHER') {
                         currentEMI = currentEMI + (currentEMI * stepUpDownPercentage / 100);
-                    } else if (type === 'BULLET') {
+                    } else if (type === 'BULLET' || type === 'BULLET_HIGHER') {
                         currentEMI = lumpsumAmount + currentEMI;
                     }
                 } else {
-                    if (type === 'BULLET') {
+                    if (type === 'BULLET' || type === 'BULLET_HIGHER') {
                         currentEMI = actualEMIAmount;
                     }
                 }
@@ -903,7 +919,7 @@
                     const td = document.createElement("td");
                     td.classList.add("text-center");
                     if (key == "EMI") {
-                        if ((type === 'STEP_UP' || type === 'STEP_UP_HIGHER_LOAN' || type === 'STEP_UP_BALLON' || type === 'STEP_DOWN' || type === 'BULLET') && (row['month'] - 1) % defaultSet.stepUpDownPeriod === 0) {
+                        if ((type === 'STEP_UP' || type === 'STEP_UP_HIGHER' || type === 'BULLET_HIGHER' || type === 'STEP_UP_BALLON' || type === 'STEP_DOWN' || type === 'BULLET') && (row['month'] - 1) % defaultSet.stepUpDownPeriod === 0) {
                             td.classList.add("bg-warning");
                         } else {
                             td.classList.add("bg-emi");
