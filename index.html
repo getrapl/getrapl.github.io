@@ -333,12 +333,21 @@
                     <div class="mt-3">
                         <div id="eligibiltyCard">
                             <div class="row m-4 p-4">
-
+                                <div class="col-sm-6 col-lg-2 text-center">
+                                    <h6>Interest Rate (%)</h6>
+                                    <label class="eligibilty-value mt-1 p-1"
+                                        id="monthlyEligibleInterestlabel">14.5%</label>
+                                </div>
                                 <div class="col-sm-6 col-lg-2 text-center">
                                     <h6>Monthly Income (₹)
                                     </h6>
                                     <label class="eligibilty-value mt-1 p-1"
                                         id="monthlyEligiblelabel">₹1,000,100</label>
+                                </div>
+                                <div class="col-sm-6 col-lg-2 text-center">
+                                    <h6>Max Eligible EMI (₹)</h6>
+                                    <label class="eligibilty-value mt-1 p-1 eligibilty-highlight"
+                                        id="maxEligiblelabel">₹15,000</label>
                                 </div>
                                 <div class="col-sm-6 col-lg-3 text-center">
                                     <h6>Request Loan (₹)
@@ -350,16 +359,6 @@
                                     <h6>Max Eligible Loan (₹)</h6>
                                     <label class="eligibilty-value mt-1 p-1 eligibilty-highlight"
                                         id="loanEligiblelabel">₹215,000</label>
-                                </div>
-                                <div class="col-sm-6 col-lg-2 text-center">
-                                    <h6>Interest rate (%)</h6>
-                                    <label class="eligibilty-value mt-1 p-1"
-                                        id="monthlyEligibleInterestlabel">14.5%</label>
-                                </div>
-                                <div class="col-sm-6 col-lg-2 text-center">
-                                    <h6>Max Eligible EMI (₹)</h6>
-                                    <label class="eligibilty-value mt-1 p-1 eligibilty-highlight"
-                                        id="maxEligiblelabel">₹15,000</label>
                                 </div>
                             </div>
                         </div>
@@ -432,6 +431,12 @@
     <script>
         $(document).ready(function () {
             setDefaultSet();
+            $('#desiredEMI, #lumpsumAmount').focusout(function() {
+                var value = $(this).val();
+                if (value === '' || parseFloat(value) < 0) {
+                    $(this).val('0');
+                }
+            });
         });
         const LoanTypeEnum = new Map([
             ["VANILLA", "Vanilla"],
@@ -456,9 +461,9 @@
             loanAmount: 600000,
             interest: 10,
             tenureYears: 5,
-            desiredEMI: 25000,
+            desiredEMI: 0,
             debtIncomeRatio: 50,
-            lumpsumAmount: 50000,
+            lumpsumAmount: 0,
             eightYearFunding: 96,
             stepUpDown: 10,
             stepUpDownPeriod: 12
@@ -508,7 +513,7 @@
         function updateInterest(slider) {
             updateRangeFill(slider);
             $("#interest").val(slider.value);
-            $('#interestLabel').text(slider.value + '%')
+            $('#interestLabel').text(slider.value + '%')  
         }
 
         function updateLoanAmount(slider) {
@@ -547,6 +552,9 @@
             const monthlyInterestRate = (interestRate / 12) / 100;
             const maxEligibleAmount = (annualIncome / 12) * (debtIncomeRatio / 100);
             const maxEligibleEMI = (annualIncome / 12) * (debtIncomeRatio / 100);
+            if(desiredEMI === 0) {
+                $("#desiredEMI").val(Math.round(maxEligibleEMI))
+            }
             const targetEMI = (desiredEMI === 0) || (desiredEMI > maxEligibleEMI) ? maxEligibleEMI : desiredEMI;
             $('#monthlyEligiblelabel').text('₹' + formatIndianCurrency(Math.round(monthlyIncome)));
             $('#monthlyEligibleInterestlabel').text(interestRate + '%');
